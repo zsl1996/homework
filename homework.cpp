@@ -1,3 +1,5 @@
+// homework.cpp: 定义控制台应用程序的入口点。
+//
 
 #include "stdafx.h"
 #include <io.h>  
@@ -11,6 +13,8 @@
 using namespace std;
 string topworld[10];
 int wnumtop[10] = { 0 };
+int allch = 0; //the number of char
+int allline = 0; //the num of line
 void GetAllFiles(string path, vector<string>& files)
 {
 
@@ -46,7 +50,6 @@ int ReadByChar(string file, int &fch, int &line, unordered_map<string, int> &wor
 	fstream openbychar;
 	char c;
 	int flag = 0;//标志是否是第一个词
-	int flag1 = 0;//
 	openbychar.open(file, ios::in);
 	string sword;
 	string sphrase = "";
@@ -88,8 +91,6 @@ int ReadByChar(string file, int &fch, int &line, unordered_map<string, int> &wor
 			flag = 0;
 			sword = "";
 		}
-	//
-		
 	}
 	openbychar.close();
 	return 0;
@@ -119,16 +120,44 @@ void top(unordered_map<string, int> & word) {
 	}
 
 }
+void writetxt(string filepath) { //输出到txt
+	fstream writebychar;
+	char c;
+	int max = 0;
+	writebychar.open(filepath, ios::app);
+	for (int i = 0; i < 10; i++)
+	{
+		max = getmax();
+		writebychar << topworld[max];
+		writebychar << " ";
+		writebychar << wnumtop[max] << "\n";
+		wnumtop[max] = 0;
+	}
+	writebychar << "\n\n";
+	writebychar.close();
+}
+void writecharnum(string path,int wordnum) {
+	fstream write;
+	char c;
+	int max = 0;
+	write.open(path, ios::out);
+		write << "char_number : ";
+		write << allch<<"\n";
+		write << "line_number : ";
+		write << allline << "\n";
+		write << " word_number: ";
+		write << wordnum <<"\n \n";;
+	write.close();
+}
 int main()
 {
+	string filepath = "C:/Users/zsl/Desktop/test/newsample";
+	string writepath = "C:/Users/zsl/Desktop/result.txt";
 	unordered_map<string, int> word;
 	unordered_map<string, int> phrase;
-	string filepath = "C:/Users/zsl/Desktop/test/newsample";
 	vector<string> files;
 	GetAllFiles(filepath, files);
 	int size = files.size();
-	int allch = 0; //the number of char
-	int allline =0 ; //the num of line
 	for (int i = 0; i < size; i++)
 	{
 		int fch = 0; 
@@ -137,9 +166,10 @@ int main()
 		allch += fch;
 		allline += line;
 	}
-//	top(word);
+	writecharnum(writepath,word.size());
+	top(word);
+	writetxt(writepath);
 	top(phrase);
-
-
+	writetxt(writepath);
 	return 0;
 }
