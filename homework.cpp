@@ -1,4 +1,3 @@
-
 #include "stdafx.h"
 #include <io.h>  
 #include <fstream>  
@@ -15,7 +14,6 @@ string topworld[10];
 int wnumtop[10] = { 0 };
 int allch = 0; //the number of char
 int allline = 0; //the num of line
-
 string worddtostr(unordered_map<string, bitset<128>> &wordd,string s){//根据位信息将单词改为大写待更改！！！！！！！！！！！！！！！！！！！！！！
 	bitset<128> q = wordd[s];
 	int f = s.length();
@@ -246,40 +244,57 @@ void writeworddtxt(string filepath, unordered_map<string, bitset<128>> wordd) { 
 	writebychar.close();
 }
 
-void writecharnum(string path, int wordnum) {
+void writecharnum(string path, unordered_map<string, int> word) {
 	fstream write;
 	char c;
 	int max = 0;
+	unordered_map<string, int>::iterator it = word.begin();
+	unordered_map<string, int>::iterator end = word.end();
+	int wordnum = 0;
+	for (; it != end; it++) {
+		wordnum = wordnum + it->second;
+	}
 	write.open(path, ios::out);
 	write << "char_number : ";
 	write << allch << "\n";
 	write << "line_number : ";
 	write << allline << "\n";
-	write << " word_number: ";
+	write << "word_number:";
 	write << wordnum << "\n \n";;
 	write.close();
 }
 
-int main()
+int main(int argc,char *argv[])
 {	//"C:/Users/zsl/Desktop/test/newsample"
-	string filepath = "C:/Users/zsl/Desktop/test/newsample";
-	string writepath = "C:/Users/zsl/Desktop/result.txt";
 	unordered_map<string, int> word; //单词 数目
 	unordered_map<string, bitset<128>> wordd;//单词 对应应该大写的位
 	unordered_map<string, int> phrase; //词组 数目
 	unordered_map<string, string> wordend; //词组 可能有的单词后缀
 	vector<string> files;
-	GetAllFiles(filepath, files);
-	int size = files.size();
-	for (int i = 0; i < size; i++)
-	{
-		int fch = 0;
-		int line = 0;
-		ReadByChar(files[i], fch, line, word, phrase, wordd);
-		allch += fch;
-		allline += line;
+	string writepath="";
+	string filepath="";
+	//string filepath = "C:/Users/zsl/Desktop/test/newsample";
+	writepath = "C:/Users/zsl/Desktop/result.txt";
+	string s = argv[1];
+	if (s.find(".") == string::npos) {
+		filepath =s;
+		GetAllFiles(filepath, files);
+
+		int size = files.size();
+		for (int i = 0; i < size; i++)
+		{
+			int fch = 0;
+			int line = 0;
+			ReadByChar(files[i], fch, line, word, phrase, wordd);
+			allch += fch;
+			allline += line;
+		}
 	}
-	writecharnum(writepath, word.size());
+	else {
+		ReadByChar(s , allch, allline, word, phrase, wordd);
+	}
+
+	writecharnum(writepath,word);
 	if (allch != 0) {
 		top(word);
 		writewordtxt(writepath, wordd);
