@@ -40,46 +40,53 @@ void GetAllFiles(string path, vector<string>& files)
 	}
 
 }
-int ReadByChar(string file,int &fch,int &line, unordered_map<string, int> &word)
+int ReadByChar(string file, int &fch, int &line, unordered_map<string, int> &word, unordered_map<string, int> &phrase)
 {
 
 	fstream openbychar;
 	char c;
-	int flag = 0;
+	int flag = 0;//æ ‡å¿—æ˜¯å¦æ˜¯ç¬¬ä¸€ä¸ªè¯
+	int flag1 = 0;//
 	openbychar.open(file, ios::in);
-	string s;
+	string sword;
+	string sphrase = "";
 	if (openbychar.fail()) {
-		return 0; //¿ÉÄÜÊÇÄ¿Â¼
+		return 0; //å¯èƒ½æ˜¯ç›®å½•
 	}
-	line = 1;//ÎÄ¼şÄ©Î²Ã»ÓĞ»»ĞĞ
+	line = 1;//æ–‡ä»¶æœ«å°¾æ²¡æœ‰æ¢è¡Œ
 	while (openbychar.get(c))
 	{
-		if(c>=32&&c<127)  //ÓĞ´ıÉÌÈ¶
-		fch++;
+		if (c >= 32 && c < 127)  //æœ‰å¾…å•†æ¦·
+			fch++;
 		if (c == '\n') {
 			line++;
 		}
-	//Í³¼Æµ¥´Ê
-		if ((c < 91 && c>64 )|| (c<123&&c>96) ) {
+		//ç»Ÿè®¡å•è¯
+		if ((c < 91 && c>64) || (c < 123 && c>96)) {
 			flag++;
-			if (c < 91 && c>64) // ·¶Î§´ó¸ÅÒÑÖªÓÃÎ»ÔËËã¼ò»¯11111111111111111111111111111111
+			if (c < 91 && c>64) // èŒƒå›´å¤§æ¦‚å·²çŸ¥ç”¨ä½è¿ç®—ç®€åŒ–11111111111111111111111111111111
 			{
 				c = c + 32;
-				s = s + c;
+				sword = sword + c;
 			}
-			s = s + c;
+			sword = sword + c;
 		}
-		//²»ÊÇ×ÖÄ¸
-		else if (flag >3)
+		//ä¸æ˜¯å­—æ¯
+		else if (flag > 3)
 		{
-			word[s]++;
+			word[sword]++;
+//ç»Ÿè®¡è¯ç»„
+			sphrase = sphrase +" "+ sword;
+			phrase[sphrase]++;
+			sphrase = sword;
 			flag = 0;
-			s = "";
+			sword = "";
+
 		}
 		else
 		{
 			flag = 0;
-			s = "";
+			sword = "";
 		}
 	//
 		
@@ -87,7 +94,7 @@ int ReadByChar(string file,int &fch,int &line, unordered_map<string, int> &word)
 	openbychar.close();
 	return 0;
 }
-int  getwmin() { //»ñÈ¡×îĞ¡ÖµÏÂ±êÖ¾
+int  getwmin() { //è·å–æœ€å°å€¼ä¸‹æ ‡å¿—
 	int minnum = 2147483647;
 	int min= 0;
 	for (int i = 0; i < 10; i++) {
@@ -102,7 +109,7 @@ void top(unordered_map<string, int> & word) {
 	unordered_map<string, int>::iterator it = word.begin();
 	unordered_map<string, int>::iterator end = word.end();
 	int min = getwmin();
-	for (; it != end; it++) { //¸ÄÎªÖ¸ÕëÓ¦¸Ã±Èµü´úÆ÷¿ì1111111111111111111111111111111111111111111111
+	for (; it != end; it++) { //æ”¹ä¸ºæŒ‡é’ˆåº”è¯¥æ¯”è¿­ä»£å™¨å¿«1111111111111111111111111111111111111111111111
 		if (it->second > wnumtop[min]) {
 			topworld[min] = "";
 			topworld[min] = it->first;
@@ -115,6 +122,7 @@ void top(unordered_map<string, int> & word) {
 int main()
 {
 	unordered_map<string, int> word;
+	unordered_map<string, int> phrase;
 	string filepath = "C:/Users/zsl/Desktop/test/newsample";
 	vector<string> files;
 	GetAllFiles(filepath, files);
@@ -125,11 +133,12 @@ int main()
 	{
 		int fch = 0; 
 		int line = 0;
-		ReadByChar(files[i],fch,line,word);
+		ReadByChar(files[i],fch,line,word,phrase);
 		allch += fch;
 		allline += line;
 	}
-	top(word);
+//	top(word);
+	top(phrase);
 
 
 	return 0;
