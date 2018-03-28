@@ -9,12 +9,22 @@
 #include <valarray>  
 #include<iterator>
 #include<bitset>
+#include<string.h>
 using namespace std;
 string topworld[10];
 int wnumtop[10] = { 0 };
 int allch = 0; //the number of char
 int allline = 0; //the num of line
-bitset<128> q = 0;//��־word��һλ�Ǵ�д
+
+string worddtostr(unordered_map<string, bitset<128>> &wordd,string s){//根据位信息将单词改为大写
+	bitset<128> q = wordd[s];
+	int f = s.length();
+	for (int j = 0; j < f; j++)
+	{
+		s[j] = s[j] - 32 * q.test(j);
+	}
+	return s;
+}
 void GetAllFiles(string path, vector<string>& files)
 {
 
@@ -44,7 +54,7 @@ void GetAllFiles(string path, vector<string>& files)
 	}
 
 }
-bitset<128> bitcmp(bitset<128> a, bitset<128> b) { //���ֵ�˳�򷵻���ȷ�Ĵ�
+bitset<128> bitcmp(bitset<128> a, bitset<128> b) { //按字典顺序返回正确的词
 	for (int j = 0; j < 128; j++) {
 		if (a.test(j) > b.test(j)) {
 			return a;
@@ -57,27 +67,27 @@ bitset<128> bitcmp(bitset<128> a, bitset<128> b) { //���ֵ�˳�򷵻��
 }
 int ReadByChar(string file, int &fch, int &line, unordered_map<string, int> &word, unordered_map<string, int> &phrase, unordered_map<string, bitset<128>> &wordd)
 {
-
+	bitset<128> q = 0;
 	fstream openbychar;
 	char c;
-	int flag = 0;//��־�Ƿ��ǵ�һ����
+	int flag = 0;//标志是否是第一个词
 	openbychar.open(file, ios::in);
 	string sword = "";
 	string sphrase = "";
 	if (openbychar.fail()) {
-		return 0; //������Ŀ¼
+		return 0; //可能是目录
 	}
-	line = 1;//�ļ�ĩβû�л���
+	line = 1;//文件末尾没有换行
 	while (openbychar.get(c))
 	{
-		if (c >= 32 && c < 127) fch++; //ͳ���ַ���
+		if (c >= 32 && c < 127) fch++; //统计字符数
 		if (c == '\n') {
 			line++;
 		}
-		//ͳ�Ƶ���
+		//统计单词
 		if ((c < 91 && c>64) || (c < 123 && c>96)) {
 			flag++;
-			if (c < 91 && c>64) // ��Χ�����֪��λ�����11111111111111111111111111111111
+			if (c < 91 && c>64) // 范围大概已知用位运算简化11111111111111111111111111111111
 			{
 				c = c + 32;
 				sword = sword + c;
@@ -85,13 +95,13 @@ int ReadByChar(string file, int &fch, int &line, unordered_map<string, int> &wor
 			}
 			else sword = sword + c;
 		}
-		//������ĸ
+		//不是字母
 		else if (flag > 3)
 		{
 			word[sword]++;
 			wordd[sword] = bitcmp(q,wordd[sword]); 
 			q = 0;
-			//ͳ�ƴ���
+			//统计词组
 			sphrase = sphrase + " " + sword;
 			phrase[sphrase]++;
 			sphrase = sword;
@@ -104,7 +114,7 @@ int ReadByChar(string file, int &fch, int &line, unordered_map<string, int> &wor
 			sword = "";
 		}
 	}
-	if (sword.length() > 3) { //��ĩ���һ������
+	if (sword.length() > 3) { //文末最后一个单词
 		word[sword]++;
 		wordd[sword] = bitcmp(q,wordd[sword]); 
 		q = 0;
@@ -116,7 +126,23 @@ int ReadByChar(string file, int &fch, int &line, unordered_map<string, int> &wor
 	if (fch == 0) line = 0;
 	return 0;
 }
-int  getwmin() { //��ȡ��Сֵ�±�־
+void SplitString(string& s,vector<std::string>& v)
+{
+	const std::string& c = " ";
+	string::size_type pos1, pos2;
+	pos2 = s.find(c);
+	pos1 = 0;
+	while (std::string::npos != pos2)
+	{
+		v.push_back(s.substr(pos1, pos2 - pos1));
+
+		pos1 = pos2 + c.size();
+		pos2 = s.find(c, pos1);
+	}
+	if (pos1 != s.length())
+		v.push_back(s.substr(pos1));
+}
+int  getwmin() { //获取最小值下标志
 	int minnum = 2147483647;
 	int min = 0;
 	for (int i = 0; i < 10; i++) {
@@ -142,7 +168,7 @@ void top(unordered_map<string, int> & word) {
 	unordered_map<string, int>::iterator it = word.begin();
 	unordered_map<string, int>::iterator end = word.end();
 	int min = getwmin();
-	for (; it != end; it++) { //��Ϊָ��Ӧ�ñȵ�������1111111111111111111111111111111111111111111111
+	for (; it != end; it++) { //改为指针应该比迭代器快1111111111111111111111111111111111111111111111
 		if (it->second > wnumtop[min]) {
 			topworld[min] = "";
 			topworld[min] = it->first;
@@ -152,21 +178,15 @@ void top(unordered_map<string, int> & word) {
 	}
 
 }
-void writewordtxt(string filepath, unordered_map<string, bitset<128>>& wordd) { //�����txt
+void writewordtxt(string filepath, unordered_map<string, bitset<128>>& wordd) { //输出到txt
 	fstream writebychar;
-	char c;
 	int max = 0;
 	writebychar.open(filepath, ios::app);
 	for (int i = 0; i < 10; i++)
 	{
 		max = getmax();
-		bitset<128> q = wordd[topworld[max]];
-		int f = topworld[max].length();
-		for (int j = 0; j < f; j++)
-		{
-			topworld[max][j] = topworld[max][j] - 32 * q.test(j);
-		}
-		writebychar << topworld[max];
+		string s = worddtostr(wordd, topworld[max]);
+		writebychar << s;
 		writebychar << " ";
 		writebychar << wnumtop[max] << "\n";
 		wnumtop[max] = 0;
@@ -174,7 +194,7 @@ void writewordtxt(string filepath, unordered_map<string, bitset<128>>& wordd) { 
 	writebychar << "\n\n";
 	writebychar.close();
 }
-void writeworddtxt(string filepath) { //�����txt
+void writeworddtxt(string filepath, unordered_map<string, bitset<128>> wordd) { // 等待修改！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
 	fstream writebychar;
 	char c;
 	int max = 0;
@@ -182,8 +202,9 @@ void writeworddtxt(string filepath) { //�����txt
 	for (int i = 0; i < 10; i++)
 	{
 		max = getmax();
-
-		writebychar << topworld[max];
+		vector<string> s;
+		SplitString(topworld[max], s);
+		writebychar << worddtostr(wordd,s[0])<<" "<< worddtostr(wordd, s[1]);
 		writebychar << " ";
 		writebychar << wnumtop[max] << "\n";
 		wnumtop[max] = 0;
@@ -207,11 +228,11 @@ void writecharnum(string path, int wordnum) {
 }
 int main()
 {
-	string filepath = "C:/Users/zsl/Desktop/1";
+	string filepath = "C:/Users/zsl/Desktop/test/newsample";
 	string writepath = "C:/Users/zsl/Desktop/result.txt";
-	unordered_map<string, int> word; //
-	unordered_map<string, bitset<128>> wordd;
-	unordered_map<string, int> phrase;
+	unordered_map<string, int> word; //单词 数目
+	unordered_map<string, bitset<128>> wordd;//单词 对应应该大写的位
+	unordered_map<string, int> phrase; //词组 数目
 	vector<string> files;
 	GetAllFiles(filepath, files);
 	int size = files.size();
@@ -228,7 +249,7 @@ int main()
 		top(word);
 		writewordtxt(writepath, wordd);
 		top(phrase);
-		writeworddtxt(writepath);
+		writeworddtxt(writepath, wordd);
 	}
  	return 0;
 }
