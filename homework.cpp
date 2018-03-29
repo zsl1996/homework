@@ -11,7 +11,6 @@
 #include<string.h>
 using namespace std;
 string topworld[10];
-	time_t timeBegin, timeEnd;
 int wnumtop[10] = { 0 };
 int allch = 0; //the number of char
 int allline = 0; //the num of line
@@ -276,8 +275,8 @@ void writewordtxt(string filepath, unordered_map<string, string> wordend) { //�
 			writebychar << (wordend[topworld[max]]);
 			writebychar << " ";
 			writebychar << wnumtop[max] << "\n";
-			wnumtop[max] = 0;
 		}
+		wnumtop[max] = 0;
 	}
 	writebychar << "\n\n";
 	writebychar.close();
@@ -296,8 +295,8 @@ void writeworddtxt(string filepath, unordered_map<string, string> &wordend) { //
 		writebychar << wordend[s[0]] << " " << wordend[s[1]];
 		writebychar << " ";
 		writebychar << wnumtop[max] << "\n";
-		wnumtop[max] = 0;
 		}
+		wnumtop[max] = 0;
 	}
 	writebychar << "\n\n";
 	//timeEnd = time(NULL);
@@ -336,7 +335,7 @@ int main(int argc, char *argv[])
 	string filepath = "";
 	//string filepath = "C:/Users/zsl/Desktop/test/newsample";
 	string s = argv[1];
-	writepath = s + "/result.txt";
+	writepath ="result.txt";
 	
 	if (s.find(".") == string::npos) {
 		filepath = s;
@@ -358,8 +357,8 @@ int main(int argc, char *argv[])
 	if (allch != 0) {
 		top(word);
 		writewordtxt(writepath, wordend);
-		top(phrase);
-		writeworddtxt(writepath, wordend);
+		top(phrase); //topword中为词组
+		writeworddtxt(writepath,wordend);
 	}
 return 0;
 }
